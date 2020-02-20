@@ -13,7 +13,7 @@ import { IdeaService } from './idea.service';
 import { IdeaDTO } from './idea.dto';
 import { ValidationPipe } from 'src/shared/validation.pipe';
 
-@Controller('idea')
+@Controller('api/ideas')
 export class IdeaController {
     private logger = new Logger('IdeaController');
 
@@ -28,6 +28,7 @@ export class IdeaController {
     @Post()
     @UsePipes(new ValidationPipe())
     createIdea(@Body() createData: IdeaDTO) {
+        this.logger.log(JSON.stringify(createData));
         return this.ideaService.create(createData);
     }
 
@@ -39,6 +40,7 @@ export class IdeaController {
     @Put(':id')
     @UsePipes(new ValidationPipe())
     updateIdea(@Param('id') id: string, @Body() updateData: Partial<IdeaDTO>) {
+        this.logger.log(JSON.stringify(updateData));
         return this.ideaService.update(id, updateData);
     }
 
