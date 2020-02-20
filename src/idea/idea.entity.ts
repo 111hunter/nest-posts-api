@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Column } from "typeorm";
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    CreateDateColumn,
+    Column,
+    ManyToOne,
+    UpdateDateColumn,
+} from 'typeorm';
+import { UserEntity } from 'src/user/user.entity';
 
 @Entity('idea')
 export class IdeaEntity {
@@ -16,4 +24,7 @@ export class IdeaEntity {
 
     @Column('text')
     description: string;
+
+    @ManyToOne(type => UserEntity, author => author.ideas)
+    author: UserEntity;
 }
