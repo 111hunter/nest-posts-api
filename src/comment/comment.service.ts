@@ -21,21 +21,26 @@ export class CommentService {
     private toResponseObject(comment: CommentEntity) {
         return {
             ...comment,
-            author: comment.author && comment.author.toResponseObject(false),
+            author: comment.author && comment.author.toResponseObject(),
         };
     }
-    async showByIdea(ideaId: string) {
-        const idea = await this.ideaRepository.findOne({
-            where: { id: ideaId },
-            relations: ['comments', 'comments.author', 'comments.idea'],
+
+    async showByIdea(ideaId: string, page: number = 1) {
+        const comments = await this.commentRepository.find({
+            where: { idea: { id: ideaId } },
+            relations: ['author', 'idea'],
+            take: 25,
+            skip: 25 * (page - 1),
         });
-        return idea.comments.map(comment => this.toResponseObject(comment));
+        return comments.map(comment => this.toResponseObject(comment));
     }
 
-    async showByUser(userId: string) {
+    async showByUser(userId: string, page: number = 1) {
         const comments = await this.commentRepository.find({
             where: { author: { id: userId } },
-            relations: ['author'],
+            relations: ['author', 'idea'],
+            take: 25,
+            skip: 25 * (page - 1),
         });
         return comments.map(comment => this.toResponseObject(comment));
     }

@@ -9,14 +9,14 @@ import {
     Put,
     UsePipes,
     UseGuards,
+    Query,
 } from '@nestjs/common';
 
 import { IdeaService } from './idea.service';
 import { IdeaDTO } from './idea.dto';
 import { ValidationPipe } from '../shared/validation.pipe';
+import { User } from '../user/user.decorator';
 import { AuthGuard } from 'src/shared/auth.guard';
-import { User } from 'src/user/user.decorator';
-
 
 @Controller('api/ideas')
 export class IdeaController {
@@ -31,8 +31,13 @@ export class IdeaController {
     }
 
     @Get()
-    showAllIdeas() {
-        return this.ideaService.showAll();
+    showAllIdeas(@Query('page') page: number) {
+        return this.ideaService.showAll(page);
+    }
+
+    @Get('/newest')
+    showNewestIdeas(@Query('page') page: number) {
+        return this.ideaService.showAll(page, true);
     }
 
     @Post()
