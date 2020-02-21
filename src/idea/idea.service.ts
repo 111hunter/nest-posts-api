@@ -2,10 +2,10 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { UserEntity } from '../user/user.entity';
-import { Votes } from '../shared/votes.enum';
 import { IdeaEntity } from './idea.entity';
 import { IdeaDTO, IdeaRO } from './idea.dto';
+import { UserEntity } from '../user/user.entity';
+import { Votes } from '../shared/votes.enum';
 
 @Injectable()
 export class IdeaService {
@@ -47,15 +47,13 @@ export class IdeaService {
         } else {
             throw new HttpException('Unable to cast vote', HttpStatus.BAD_REQUEST);
         }
+
         return idea;
     }
 
-    async showAll(page: number = 1, newest?: boolean): Promise<IdeaRO[]> {
+    async showAll(): Promise<IdeaRO[]> {
         const ideas = await this.ideaRepository.find({
-            relations: ['author', 'upvotes', 'downvotes'],
-            take: 25,
-            skip: 25 * (page - 1),
-            order: newest && { created: 'DESC' },
+            relations: ['author', 'upvotes', 'downvotes', 'comments'],
         });
         return ideas.map(idea => this.ideaToResponseObject(idea));
     }
@@ -63,8 +61,9 @@ export class IdeaService {
     async read(id: string): Promise<IdeaRO> {
         const idea = await this.ideaRepository.findOne({
             where: { id },
-            relations: ['author', 'upvotes', 'downvotes'],
+            relations: ['author', 'upvotes', 'downvotes', 'comments'],
         });
+
         return this.ideaToResponseObject(idea);
     }
 
@@ -80,17 +79,13 @@ export class IdeaService {
         userId: string,
         data: Partial<IdeaDTO>,
     ): Promise<IdeaRO> {
-        let idea = await this.ideaRepository.findOne({
+        const idea = await this.ideaRepository.findOne({
             where: { id },
-            relations: ['author', 'upvotes', 'downvotes'],
+            relations: ['author', 'upvotes', 'downvotes', 'comments'],
         });
+        console.log('idea', idea);
         this.ensureOwnership(idea, userId);
         await this.ideaRepository.update({ id }, data);
-        idea = await this.ideaRepository.findOne({
-            where: { id },
-            relations: ['author', 'upvotes', 'downvotes'],
-        });
-
         return this.ideaToResponseObject(idea);
     }
 
@@ -101,14 +96,13 @@ export class IdeaService {
         });
         this.ensureOwnership(idea, userId);
         await this.ideaRepository.remove(idea);
-
         return this.ideaToResponseObject(idea);
     }
 
     async upvote(id: string, userId: string) {
         let idea = await this.ideaRepository.findOne({
             where: { id },
-            relations: ['author', 'upvotes', 'downvotes'],
+            relations: ['author', 'upvotes', 'downvotes', 'comments'],
         });
         const user = await this.userRepository.findOne({ where: { id: userId } });
         idea = await this.vote(idea, user, Votes.UP);
@@ -119,7 +113,7 @@ export class IdeaService {
     async downvote(id: string, userId: string) {
         let idea = await this.ideaRepository.findOne({
             where: { id },
-            relations: ['author', 'upvotes', 'downvotes'],
+            relations: ['author', 'upvotes', 'downvotes', 'comments'],
         });
         const user = await this.userRepository.findOne({ where: { id: userId } });
         idea = await this.vote(idea, user, Votes.DOWN);
