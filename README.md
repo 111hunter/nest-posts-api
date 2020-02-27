@@ -17,7 +17,7 @@
 
  2.Cd into directory
 
-` cd nest-posts-api `
+` npm install `
 
 3.Starting the Server
 
